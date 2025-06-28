@@ -15,7 +15,7 @@ import ProductoDetalle from "./pages/ProductoDetalle";
 import Carrito from "./pages/Carrito";
 import Cancel from "./pages/Cancel";
 import Ordenes from "./pages/Ordenes";
-import PagoExitoso from "./pages/pagoExitoso";
+import PagoExitoso from "./pages/PagoExitoso";
 import RegisterPage from "./pages/RegisterPage";
 import Rapidito from "./pages/Rapidito";
 import Favoritos from "./pages/Favoritos";
