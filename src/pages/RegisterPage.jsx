@@ -9,6 +9,7 @@ const RegisterPage = () => {
   const [mensaje, setMensaje] = useState("");
 
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const esEmailValido = (email) => /\S+@\S+\.\S+/.test(email);
   const esPasswordValido = (password) => password.length >= 6;
@@ -27,7 +28,7 @@ const RegisterPage = () => {
     }
 
     try {
-      const respuesta = await axios.post("http://localhost:5003/api/users/register", {
+      const respuesta = await axios.post(`${API_URL}/api/users/register`, {
         nombre,
         email,
         password,
