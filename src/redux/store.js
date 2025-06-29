@@ -1,19 +1,32 @@
-// src/store.js
-import { configureStore } from "@reduxjs/toolkit"; // Importa la función para configurar el store
-import userReducer from "./slices/userSlice"; // Importa el reducer para manejar el estado de los usuarios
-import productReducer from "./slices/productSlice"; // Importa el reducer para manejar el estado de los productos
-import carritoReducer from "./slices/carritoSlice"; // Importa el reducer para manejar el estado del carrito de compras
-import carritoMiddleware from "./middlewares/carritoMiddleware"; // 👈 Importamos el nuevo middleware personalizado
+import { configureStore } from "@reduxjs/toolkit";
+import userReducer from "./slices/userSlice";
+import productReducer from "./slices/productSlice";
+import carritoReducer from "./slices/carritoSlice";
+import carritoMiddleware from "./middlewares/carritoMiddleware";
 
-// Configuración del store de Redux
+// ✅ Cargar usuario y token desde localStorage si existen
+const user = JSON.parse(localStorage.getItem("user"));
+const token = localStorage.getItem("token");
+
+// ✅ Estado inicial para Redux persistido al refrescar
+const preloadedState = {
+  auth: {
+    user: user || null,
+    isAuthenticated: !!user && !!token,
+    loading: false,
+    error: null,
+  },
+};
+
 const store = configureStore({
   reducer: {
-    auth: userReducer,     // Reducer para la autenticación de usuarios
-    product: productReducer, // Reducer para la gestión de productos
-    carrito: carritoReducer, // Reducer para la gestión del carrito de compras
+    auth: userReducer,
+    product: productReducer,
+    carrito: carritoReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(carritoMiddleware), // 👈 Añadimos el middleware personalizado al store
+    getDefaultMiddleware().concat(carritoMiddleware),
+  preloadedState, // 👈 importante para evitar ciclos y errores
 });
 
-export default store; // Exporta el store configurado
+export default store;
