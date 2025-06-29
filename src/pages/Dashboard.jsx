@@ -7,6 +7,7 @@ import axiosInstance from "../services/axiosInstance";
 import { ESTADOS_ORDEN } from "../constants/orderEstados";
 
 const Dashboard = () => {
+  console.log("🧪 Renderizando Dashboard");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const usuario = useSelector((state) => state.auth.user);

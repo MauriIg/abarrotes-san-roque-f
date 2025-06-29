@@ -54,7 +54,7 @@ const Login = () => {
 
     if (user && user._id) {
       console.log("🎯 Usuario cargado en Redux:", user); // 🔍 Este log fue agregado
-
+      console.log("🚀 Redirigiendo según rol:", user.rol);
       sincronizarCarrito();
       switch (user.rol) {
         case "admin":
