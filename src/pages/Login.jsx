@@ -1,4 +1,3 @@
-// Login.jsx (corregido)
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../redux/slices/userSlice";
@@ -25,7 +24,7 @@ const Login = () => {
       return;
     }
 
-    console.log("🔐 Enviando login con:", email, password); // Debug
+    console.log("🔐 Enviando login con:", email, password);
     dispatch(loginUser({ email, password }));
   };
 
@@ -54,6 +53,8 @@ const Login = () => {
     };
 
     if (user && user._id) {
+      console.log("🎯 Usuario cargado en Redux:", user); // 🔍 Este log fue agregado
+
       sincronizarCarrito();
       switch (user.rol) {
         case "admin":
@@ -97,13 +98,20 @@ const Login = () => {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Contraseña"
           required
-          autoComplete="new-password" // 🔥 Esta línea evita el autofill silencioso
+          autoComplete="new-password"
           style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
         />
         <button
           type="submit"
           disabled={loading}
-          style={{ width: "100%", padding: "10px", backgroundColor: "#4CAF50", color: "white", border: "none", cursor: "pointer" }}
+          style={{
+            width: "100%",
+            padding: "10px",
+            backgroundColor: "#4CAF50",
+            color: "white",
+            border: "none",
+            cursor: "pointer",
+          }}
         >
           {loading ? "Ingresando..." : "Ingresar"}
         </button>
