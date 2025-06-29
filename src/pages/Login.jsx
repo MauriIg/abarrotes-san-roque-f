@@ -1,3 +1,4 @@
+// Login.jsx (consola y fix de bucle)
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../redux/slices/userSlice";
@@ -8,6 +9,7 @@ import { obtenerCarritoUsuario } from "../services/carritoService";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [hasRedirected, setHasRedirected] = useState(false); // ⬅️ Nuevo flag
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -52,9 +54,10 @@ const Login = () => {
       }
     };
 
-    if (user && user._id) {
-      console.log("🎯 Usuario cargado en Redux:", user); // 🔍 Este log fue agregado
-      console.log("🚀 Redirigiendo según rol:", user.rol);
+    if (user && user._id && !hasRedirected) {
+      console.log("🎯 Usuario cargado en Redux:", user);
+      console.log("🚀 Intentando redirigir a:", user.rol);
+      setHasRedirected(true);
       sincronizarCarrito();
       switch (user.rol) {
         case "admin":
@@ -76,7 +79,7 @@ const Login = () => {
           navigate("/");
       }
     }
-  }, [user, navigate, dispatch]);
+  }, [user, navigate, dispatch, hasRedirected]);
 
   return (
     <div style={{ maxWidth: "400px", margin: "auto", padding: "20px" }}>
@@ -104,14 +107,7 @@ const Login = () => {
         <button
           type="submit"
           disabled={loading}
-          style={{
-            width: "100%",
-            padding: "10px",
-            backgroundColor: "#4CAF50",
-            color: "white",
-            border: "none",
-            cursor: "pointer",
-          }}
+          style={{ width: "100%", padding: "10px", backgroundColor: "#4CAF50", color: "white", border: "none", cursor: "pointer" }}
         >
           {loading ? "Ingresando..." : "Ingresar"}
         </button>
