@@ -21,9 +21,8 @@ const Dashboard = () => {
   const [ordenes, setOrdenes] = useState([]);
   const [ventasCajero, setVentasCajero] = useState([]);
 
-  // ✅ useEffect corregido
   useEffect(() => {
-    if (!usuario) return; // Esperar a que cargue
+    if (!usuario) return;
 
     if (usuario.rol !== "cajero") {
       alert("Acceso denegado");
@@ -183,13 +182,12 @@ const Dashboard = () => {
     }
   };
 
-  // 🔄 Espera a que el usuario esté disponible antes de renderizar
   if (!usuario) return <p style={{ textAlign: "center", marginTop: "50px" }}>Cargando Dashboard...</p>;
 
   return (
     <div style={{ padding: "20px" }}>
-      {/* ... todo el resto de tu interfaz, sin cambios ... */}
-      {/* Puedes pegar todo desde aquí hasta el final si ya lo tenías configurado */}
+      <h2>Bienvenido al panel del cajero</h2>
+      {/* Aquí va el resto de tu interfaz */}
     </div>
   );
 };
