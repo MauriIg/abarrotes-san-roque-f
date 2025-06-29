@@ -1,4 +1,4 @@
-// Login.jsx (versión anterior sin setTimeout, como tú lo tenías)
+// Login.jsx (corregido)
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../redux/slices/userSlice";
@@ -24,6 +24,8 @@ const Login = () => {
       alert("Por favor ingresa un email válido.");
       return;
     }
+
+    console.log("🔐 Enviando login con:", email, password); // Debug
     dispatch(loginUser({ email, password }));
   };
 
@@ -95,6 +97,7 @@ const Login = () => {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Contraseña"
           required
+          autoComplete="new-password" // 🔥 Esta línea evita el autofill silencioso
           style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
         />
         <button
@@ -110,7 +113,15 @@ const Login = () => {
         <button
           type="button"
           onClick={() => navigate("/register")}
-          style={{ backgroundColor: "transparent", border: "none", color: "#007BFF", cursor: "pointer", fontWeight: "bold", textDecoration: "underline", marginLeft: "5px" }}
+          style={{
+            backgroundColor: "transparent",
+            border: "none",
+            color: "#007BFF",
+            cursor: "pointer",
+            fontWeight: "bold",
+            textDecoration: "underline",
+            marginLeft: "5px",
+          }}
         >
           Regístrate aquí
         </button>
@@ -118,7 +129,14 @@ const Login = () => {
           <button
             type="button"
             onClick={() => navigate("/recover")}
-            style={{ backgroundColor: "transparent", border: "none", color: "#007BFF", cursor: "pointer", textDecoration: "underline", fontSize: "14px" }}
+            style={{
+              backgroundColor: "transparent",
+              border: "none",
+              color: "#007BFF",
+              cursor: "pointer",
+              textDecoration: "underline",
+              fontSize: "14px",
+            }}
           >
             ¿Olvidaste tu contraseña?
           </button>
