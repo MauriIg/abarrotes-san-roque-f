@@ -22,6 +22,7 @@ const Dashboard = () => {
   const [ventasCajero, setVentasCajero] = useState([]);
 
   useEffect(() => {
+    console.log("🎯 useEffect ejecutado con usuario:", usuario);
     if (!usuario) return;
 
     if (usuario.rol !== "cajero") {
