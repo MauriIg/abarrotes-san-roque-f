@@ -1,4 +1,3 @@
-// Login.jsx (consola y fix de bucle)
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../redux/slices/userSlice";
@@ -9,7 +8,7 @@ import { obtenerCarritoUsuario } from "../services/carritoService";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [hasRedirected, setHasRedirected] = useState(false); // ⬅️ Nuevo flag
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -39,7 +38,7 @@ const Login = () => {
         try {
           const token = localStorage.getItem("token");
           const carritoServidor = await obtenerCarritoUsuario(token);
-          if (carritoServidor.productos && carritoServidor.productos.length > 0) {
+          if (carritoServidor?.productos?.length > 0) {
             const productosFormateados = carritoServidor.productos.map((p) => ({
               _id: p.producto._id,
               nombre: p.producto.nombre,
@@ -54,30 +53,33 @@ const Login = () => {
       }
     };
 
-    if (user && user._id && !hasRedirected) {
+    if (user && user._id && user.rol && !hasRedirected) {
       console.log("🎯 Usuario cargado en Redux:", user);
       console.log("🚀 Intentando redirigir a:", user.rol);
       setHasRedirected(true);
       sincronizarCarrito();
-      switch (user.rol) {
-        case "admin":
-          navigate("/Products");
-          break;
-        case "cliente":
-          navigate("/Catalogo");
-          break;
-        case "cajero":
-          navigate("/Dashboard");
-          break;
-        case "rapidito":
-          navigate("/rapidito");
-          break;
-        case "proveedor":
-          navigate("/proveedor");
-          break;
-        default:
-          navigate("/");
-      }
+
+      setTimeout(() => {
+        switch (user.rol) {
+          case "admin":
+            navigate("/Products", { replace: true });
+            break;
+          case "cliente":
+            navigate("/Catalogo", { replace: true });
+            break;
+          case "cajero":
+            navigate("/Dashboard", { replace: true });
+            break;
+          case "rapidito":
+            navigate("/rapidito", { replace: true });
+            break;
+          case "proveedor":
+            navigate("/proveedor", { replace: true });
+            break;
+          default:
+            navigate("/", { replace: true });
+        }
+      }, 100); // Da tiempo a que React estabilice antes de redirigir
     }
   }, [user, navigate, dispatch, hasRedirected]);
 
