@@ -66,7 +66,7 @@ const Carrito = () => {
 
       const estadoInicial =
       metodoPago === "efectivo"
-        ? ESTADOS_ORDEN.PARA_RECOGER
+        ? ESTADOS_ORDEN.PENDIENTE_PAGO
         : ESTADOS_ORDEN.PAGADO;
 
         if (tipoEntrega === "domicilio") {
