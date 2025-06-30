@@ -7,7 +7,6 @@ import axiosInstance from "../services/axiosInstance";
 import { ESTADOS_ORDEN } from "../constants/orderEstados";
 
 const Dashboard = () => {
-  console.log("🧪 Renderizando Dashboard");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const usuario = useSelector((state) => state.auth.user);
@@ -17,24 +16,16 @@ const Dashboard = () => {
   const [carrito, setCarrito] = useState([]);
   const [metodoPago, setMetodoPago] = useState("efectivo");
   const [efectivoRecibido, setEfectivoRecibido] = useState("");
-  const [cerrandoSesion, setCerrandoSesion] = useState(false);
   const [ordenes, setOrdenes] = useState([]);
   const [ventasCajero, setVentasCajero] = useState([]);
 
   useEffect(() => {
-    console.log("🎯 useEffect ejecutado con usuario:", usuario);
-    if (!usuario) return;
-
-    if (usuario.rol !== "cajero") {
-      alert("Acceso denegado");
-      navigate("/");
-      return;
+    if (usuario && usuario.rol === "cajero") {
+      dispatch(getVisibleProducts());
+      cargarOrdenesPendientes();
+      cargarVentasDelCajero();
     }
-
-    dispatch(getVisibleProducts());
-    cargarOrdenesPendientes();
-    cargarVentasDelCajero();
-  }, [usuario, navigate, dispatch]);
+  }, [usuario, dispatch]);
 
   const cargarOrdenesPendientes = async () => {
     try {
@@ -183,7 +174,9 @@ const Dashboard = () => {
     }
   };
 
+  // 🔐 Validación principal al renderizar (evita bucle)
   if (!usuario) return <p style={{ textAlign: "center", marginTop: "50px" }}>Cargando Dashboard...</p>;
+  if (usuario.rol !== "cajero") return <p style={{ textAlign: "center", marginTop: "50px" }}>Acceso denegado</p>;
 
   return (
     <div style={{ padding: "20px" }}>
