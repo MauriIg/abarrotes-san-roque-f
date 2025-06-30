@@ -87,7 +87,6 @@ const Carrito = () => {
           referencias: tipoEntrega === "domicilio" ? referencias : "",
           telefono: tipoEntrega === "domicilio" ? telefono : "",
           metodoPago,
-          estado: estadoInicial,
         },
         token
       );
