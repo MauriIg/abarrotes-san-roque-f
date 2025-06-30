@@ -68,7 +68,7 @@ const Login = () => {
             navigate("/Catalogo", { replace: true });
             break;
           case "cajero":
-            navigate("/Dashboard", { replace: true });
+            navigate("/dashboard", { replace: true });
             break;
           case "rapidito":
             navigate("/rapidito", { replace: true });
