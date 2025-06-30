@@ -104,7 +104,7 @@ const App = () => {
 
         {/* Rutas protegidas para admin */}
         <Route path="/dashboard" element={
-          <PrivateRoute allowedRoles={["admin","cajero"]}>
+          <PrivateRoute allowedRoles={["cajero"]}>
             <Dashboard />
           </PrivateRoute>
         } />
