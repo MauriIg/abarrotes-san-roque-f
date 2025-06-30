@@ -1,3 +1,4 @@
+// Login.jsx (consola y fix de bucle)
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../redux/slices/userSlice";
@@ -8,7 +9,7 @@ import { obtenerCarritoUsuario } from "../services/carritoService";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [hasRedirected, setHasRedirected] = useState(false);
+  const [hasRedirected, setHasRedirected] = useState(false); // ⬅️ Nuevo flag
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -56,11 +57,8 @@ const Login = () => {
     if (user && user._id && !hasRedirected) {
       console.log("🎯 Usuario cargado en Redux:", user);
       console.log("🚀 Intentando redirigir a:", user.rol);
-
-      // MARCAR ANTES de redirigir
       setHasRedirected(true);
       sincronizarCarrito();
-
       switch (user.rol) {
         case "admin":
           navigate("/Products");
