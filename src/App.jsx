@@ -38,9 +38,12 @@ import {
   guardarCarritoUsuario,
 } from "./services/carritoService";
 
-// Componente para proteger rutas según rol
+// ✅ Componente protegido con fallback a localStorage
 const PrivateRoute = ({ children, allowedRoles }) => {
-  const user = useSelector((state) => state.auth.user);
+  const reduxUser = useSelector((state) => state.auth.user);
+  const localUser = JSON.parse(localStorage.getItem("user"));
+  const user = reduxUser || localUser;
+
   if (!user || !allowedRoles.includes(user.rol)) {
     return <Navigate to="/login" />;
   }
@@ -102,9 +105,9 @@ const App = () => {
         <Route path="/ordenes" element={<Ordenes />} />
         <Route path="/favoritos" element={<Favoritos />} />
 
-        {/* Rutas protegidas para admin */}
+        {/* Rutas protegidas para admin y cajero */}
         <Route path="/dashboard" element={
-          <PrivateRoute allowedRoles={["cajero","admin"]}>
+          <PrivateRoute allowedRoles={["cajero", "admin"]}>
             <Dashboard />
           </PrivateRoute>
         } />
@@ -154,12 +157,10 @@ const App = () => {
           </PrivateRoute>
         } />
         <Route path="/proveedor" element={
-          <PrivateRoute allowedRoles={["admin","proveedor"]}>
+          <PrivateRoute allowedRoles={["admin", "proveedor"]}>
             <Proveedor />
           </PrivateRoute>
         } />
-
-        {/* Ruta del rapidito (también protegida si quieres) */}
         <Route path="/rapidito" element={
           <PrivateRoute allowedRoles={["rapidito"]}>
             <Rapidito />
