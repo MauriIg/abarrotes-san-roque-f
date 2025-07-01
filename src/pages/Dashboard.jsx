@@ -116,10 +116,11 @@ const Dashboard = () => {
 
   const handleSelectProduct = (id) => {
     const productoSeleccionado = productosDisponibles.find(p => p._id === id);
+    const precio = parseFloat(productoSeleccionado?.precio);
     if (productoSeleccionado) {
       setProducto({
         nombre: productoSeleccionado.nombre,
-        precio: parseFloat(productoSeleccionado.precio || 0),
+        precio: isNaN(precio) ? 0 : precio,
         cantidad: 1
       });
     }
@@ -198,11 +199,14 @@ const Dashboard = () => {
       <h3>Registro de venta</h3>
       <select onChange={(e) => handleSelectProduct(e.target.value)} defaultValue="">
         <option value="" disabled>Seleccionar producto</option>
-        {productosDisponibles.map(p => (
-          <option key={p._id} value={p._id}>
-            {p.nombre} - ${parseFloat(p.precio || 0).toFixed(2)}
-          </option>
-        ))}
+        {productosDisponibles.map(p => {
+          const precio = parseFloat(p.precio);
+          return (
+            <option key={p._id} value={p._id}>
+              {p.nombre} - ${!isNaN(precio) ? precio.toFixed(2) : "0.00"}
+            </option>
+          );
+        })}
       </select>
       <input
         type="number"
