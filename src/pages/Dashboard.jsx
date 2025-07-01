@@ -1,4 +1,4 @@
- import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/slices/userSlice";
 import { getVisibleProducts } from "../redux/slices/productSlice";
@@ -117,7 +117,11 @@ const Dashboard = () => {
   const handleSelectProduct = (id) => {
     const productoSeleccionado = productosDisponibles.find(p => p._id === id);
     if (productoSeleccionado) {
-      setProducto({ nombre: productoSeleccionado.nombre, precio: productoSeleccionado.precio, cantidad: 1 });
+      setProducto({
+        nombre: productoSeleccionado.nombre,
+        precio: parseFloat(productoSeleccionado.precio),
+        cantidad: 1
+      });
     }
   };
 
@@ -174,18 +178,19 @@ const Dashboard = () => {
     }
   };
 
-  // 🔐 Validación principal al renderizar (evita bucle)
   if (!usuario) return <p style={{ textAlign: "center", marginTop: "50px" }}>Cargando Dashboard...</p>;
   if (usuario.rol !== "cajero") return <p style={{ textAlign: "center", marginTop: "50px" }}>Acceso denegado</p>;
 
   return (
     <div style={{ padding: "20px" }}>
       <h2>Bienvenido al panel del cajero</h2>
+
       <h3>Órdenes pendientes para recoger</h3>
       <ul>
         {ordenes.map((orden) => (
           <li key={orden._id}>
-            <strong>Total:</strong> ${orden.total.toFixed(2)} - <button onClick={() => marcarComoFinalizado(orden._id)}>Marcar como entregada</button>
+            <strong>Total:</strong> ${orden.total.toFixed(2)}{" "}
+            <button onClick={() => marcarComoFinalizado(orden._id)} style={buttonStyle}>Marcar como entregada</button>
           </li>
         ))}
       </ul>
@@ -201,15 +206,16 @@ const Dashboard = () => {
         type="number"
         placeholder="Cantidad"
         value={producto.cantidad}
-        onChange={(e) => setProducto({ ...producto, cantidad: e.target.value })}
+        onChange={(e) => setProducto({ ...producto, cantidad: parseInt(e.target.value) || 1 })}
         style={{ margin: "0 5px" }}
       />
-      <button onClick={agregarProducto}>Agregar</button>
+      <button onClick={agregarProducto} style={buttonStyle}>Agregar</button>
 
       <ul>
         {carrito.map((item, index) => (
           <li key={index}>
-            {item.nombre} x{item.cantidad} - ${item.precio} <button onClick={() => eliminarProducto(index)}>Eliminar</button>
+            {item.nombre} x{item.cantidad} - ${item.precio.toFixed(2)}{" "}
+            <button onClick={() => eliminarProducto(index)} style={dangerButtonStyle}>Eliminar</button>
           </li>
         ))}
       </ul>
@@ -237,7 +243,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      <button onClick={finalizarVenta}>Finalizar venta</button>
+      <button onClick={finalizarVenta} style={buttonStyle}>Finalizar venta</button>
 
       <hr />
       <h3>Ventas registradas (sin corte de caja)</h3>
@@ -249,9 +255,36 @@ const Dashboard = () => {
         ))}
       </ul>
 
-      <button onClick={generarCorteCaja}>Generar corte de caja</button>
+      <button onClick={generarCorteCaja} style={buttonStyle}>Generar corte de caja</button>
+
+      <hr />
+      <button
+        onClick={() => {
+          dispatch(logout());
+          navigate("/");
+        }}
+        style={{ ...dangerButtonStyle, marginTop: "15px" }}
+      >
+        Cerrar sesión
+      </button>
     </div>
   );
+};
+
+// 🎨 Estilos de botones
+const buttonStyle = {
+  margin: "5px",
+  padding: "8px 12px",
+  backgroundColor: "#4CAF50",
+  color: "white",
+  border: "none",
+  borderRadius: "5px",
+  cursor: "pointer",
+};
+
+const dangerButtonStyle = {
+  ...buttonStyle,
+  backgroundColor: "#f44336"
 };
 
 export default Dashboard;
