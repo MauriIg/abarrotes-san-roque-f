@@ -119,7 +119,7 @@ const Dashboard = () => {
     if (productoSeleccionado) {
       setProducto({
         nombre: productoSeleccionado.nombre,
-        precio: parseFloat(productoSeleccionado.precio),
+        precio: parseFloat(productoSeleccionado.precio || 0),
         cantidad: 1
       });
     }
@@ -182,24 +182,34 @@ const Dashboard = () => {
   if (usuario.rol !== "cajero") return <p style={{ textAlign: "center", marginTop: "50px" }}>Acceso denegado</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
       <h2>Bienvenido al panel del cajero</h2>
 
       <h3>Órdenes pendientes para recoger</h3>
-      <ul>
-        {ordenes.map((orden) => (
-          <li key={orden._id}>
-            <strong>Total:</strong> ${orden.total.toFixed(2)}{" "}
-            <button onClick={() => marcarComoFinalizado(orden._id)} style={buttonStyle}>Marcar como entregada</button>
-          </li>
-        ))}
-      </ul>
+      <table style={tableStyle}>
+        <thead>
+          <tr>
+            <th>Total</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ordenes.map((orden) => (
+            <tr key={orden._id}>
+              <td>${orden.total.toFixed(2)}</td>
+              <td>
+                <button style={buttonStyle} onClick={() => marcarComoFinalizado(orden._id)}>Marcar como entregada</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <h3>Registro de venta</h3>
-      <select onChange={(e) => handleSelectProduct(e.target.value)} defaultValue="">
+      <select onChange={(e) => handleSelectProduct(e.target.value)} defaultValue="" style={{ marginBottom: "10px" }}>
         <option value="" disabled>Seleccionar producto</option>
         {productosDisponibles.map(p => (
-          <option key={p._id} value={p._id}>{p.nombre} - ${p.precio}</option>
+          <option key={p._id} value={p._id}>{p.nombre} - ${parseFloat(p.precio).toFixed(2)}</option>
         ))}
       </select>
       <input
@@ -207,18 +217,32 @@ const Dashboard = () => {
         placeholder="Cantidad"
         value={producto.cantidad}
         onChange={(e) => setProducto({ ...producto, cantidad: parseInt(e.target.value) || 1 })}
-        style={{ margin: "0 5px" }}
+        style={{ marginLeft: "10px", width: "60px" }}
       />
       <button onClick={agregarProducto} style={buttonStyle}>Agregar</button>
 
-      <ul>
-        {carrito.map((item, index) => (
-          <li key={index}>
-            {item.nombre} x{item.cantidad} - ${item.precio.toFixed(2)}{" "}
-            <button onClick={() => eliminarProducto(index)} style={dangerButtonStyle}>Eliminar</button>
-          </li>
-        ))}
-      </ul>
+      <table style={tableStyle}>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th>Subtotal</th>
+            <th>Eliminar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {carrito.map((item, index) => (
+            <tr key={index}>
+              <td>{item.nombre}</td>
+              <td>{item.cantidad}</td>
+              <td>${item.precio.toFixed(2)}</td>
+              <td>${(item.precio * item.cantidad).toFixed(2)}</td>
+              <td><button onClick={() => eliminarProducto(index)} style={dangerButtonStyle}>Eliminar</button></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <h4>Total: ${total.toFixed(2)}</h4>
 
@@ -245,25 +269,31 @@ const Dashboard = () => {
 
       <button onClick={finalizarVenta} style={buttonStyle}>Finalizar venta</button>
 
-      <hr />
-      <h3>Ventas registradas (sin corte de caja)</h3>
-      <ul>
-        {ventasCajero.map((venta) => (
-          <li key={venta._id}>
-            {venta.metodoPago} - ${venta.total.toFixed(2)}
-          </li>
-        ))}
-      </ul>
+      <h3>Ventas sin corte de caja</h3>
+      <table style={tableStyle}>
+        <thead>
+          <tr>
+            <th>Método de pago</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ventasCajero.map((venta) => (
+            <tr key={venta._id}>
+              <td>{venta.metodoPago}</td>
+              <td>${venta.total.toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <button onClick={generarCorteCaja} style={buttonStyle}>Generar corte de caja</button>
-
-      <hr />
       <button
         onClick={() => {
           dispatch(logout());
           navigate("/");
         }}
-        style={{ ...dangerButtonStyle, marginTop: "15px" }}
+        style={{ ...dangerButtonStyle, marginLeft: "10px" }}
       >
         Cerrar sesión
       </button>
@@ -271,20 +301,25 @@ const Dashboard = () => {
   );
 };
 
-// 🎨 Estilos de botones
 const buttonStyle = {
-  margin: "5px",
-  padding: "8px 12px",
   backgroundColor: "#4CAF50",
   color: "white",
+  padding: "6px 12px",
+  margin: "5px 0",
   border: "none",
-  borderRadius: "5px",
-  cursor: "pointer",
+  borderRadius: "4px",
+  cursor: "pointer"
 };
 
 const dangerButtonStyle = {
   ...buttonStyle,
   backgroundColor: "#f44336"
+};
+
+const tableStyle = {
+  width: "100%",
+  borderCollapse: "collapse",
+  marginBottom: "20px"
 };
 
 export default Dashboard;
