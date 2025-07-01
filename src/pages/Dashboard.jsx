@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../redux/slices/userSlice";
 import { getVisibleProducts } from "../redux/slices/productSlice";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosInstance";
@@ -20,12 +19,18 @@ const Dashboard = () => {
   const [ventasCajero, setVentasCajero] = useState([]);
 
   useEffect(() => {
-    if (usuario && usuario.rol === "cajero") {
-      dispatch(getVisibleProducts());
-      cargarOrdenesPendientes();
-      cargarVentasDelCajero();
+    if (!usuario) return;
+
+    if (usuario.rol !== "cajero") {
+      alert("Acceso denegado");
+      navigate("/");
+      return;
     }
-  }, [usuario, dispatch]);
+
+    dispatch(getVisibleProducts());
+    cargarOrdenesPendientes();
+    cargarVentasDelCajero();
+  }, [usuario, dispatch, navigate]);
 
   const cargarOrdenesPendientes = async () => {
     try {
@@ -174,13 +179,13 @@ const Dashboard = () => {
     }
   };
 
-  // 🔐 Validación principal al renderizar (evita bucle)
   if (!usuario) return <p style={{ textAlign: "center", marginTop: "50px" }}>Cargando Dashboard...</p>;
   if (usuario.rol !== "cajero") return <p style={{ textAlign: "center", marginTop: "50px" }}>Acceso denegado</p>;
 
   return (
     <div style={{ padding: "20px" }}>
       <h2>Bienvenido al panel del cajero</h2>
+
       <h3>Órdenes pendientes para recoger</h3>
       <ul>
         {ordenes.map((orden) => (
