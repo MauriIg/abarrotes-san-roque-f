@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../redux/slices/userSlice";
 import { getVisibleProducts } from "../redux/slices/productSlice";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosInstance";
@@ -20,17 +21,20 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!usuario) return;
-
     if (usuario.rol !== "cajero") {
       alert("Acceso denegado");
       navigate("/");
       return;
     }
-
     dispatch(getVisibleProducts());
     cargarOrdenesPendientes();
     cargarVentasDelCajero();
   }, [usuario, dispatch, navigate]);
+
+  const cerrarSesion = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
 
   const cargarOrdenesPendientes = async () => {
     try {
@@ -45,9 +49,7 @@ const Dashboard = () => {
   const cargarVentasDelCajero = async () => {
     try {
       const res = await axiosInstance.get("/api/orders/ventas/cajero", {
-        headers: {
-          Authorization: `Bearer ${usuario.token}`,
-        },
+        headers: { Authorization: `Bearer ${usuario.token}` },
       });
       const ventasFiltradas = res.data.filter((venta) => !venta.corteCaja);
       setVentasCajero(ventasFiltradas);
@@ -56,62 +58,12 @@ const Dashboard = () => {
     }
   };
 
-  const generarCorteCaja = async () => {
-    const efectivoTotal = ventasCajero
-      .filter((v) => v.metodoPago === "efectivo")
-      .reduce((acc, v) => acc + v.total, 0);
-
-    const fecha = new Date();
-    const fechaStr = fecha.toLocaleString();
-    const fechaArchivo = fecha.toISOString().replace(/[:.]/g, "-");
-
-    let ticket = `CORTE DE CAJA - ${fechaStr}\n`;
-    ticket += `========================================\n`;
-    ticket += `Total en caja (efectivo): $${efectivoTotal.toFixed(2)}\n`;
-    ticket += `Número de ventas: ${ventasCajero.length}\n`;
-
-    const resumen = {};
-    ventasCajero.forEach((v) => {
-      resumen[v.metodoPago] = (resumen[v.metodoPago] || 0) + v.total;
-    });
-
-    ticket += `Ventas por método de pago:\n`;
-    for (const metodo in resumen) {
-      ticket += `  - ${metodo}: $${resumen[metodo].toFixed(2)}\n`;
-    }
-    ticket += `========================================\n`;
-
-    const blob = new Blob([ticket], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `corte-caja-${fechaArchivo}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    try {
-      await axiosInstance.put("/api/orders/corte-caja", {}, {
-        headers: { Authorization: `Bearer ${usuario.token}` },
-      });
-      await cargarVentasDelCajero();
-      await cargarOrdenesPendientes();
-      alert("Corte de caja realizado correctamente.");
-    } catch (error) {
-      console.error("Error al realizar corte de caja:", error);
-      alert("Error al realizar el corte de caja.");
-    }
-  };
-
   const marcarComoFinalizado = async (id) => {
     try {
       await axiosInstance.put(`/api/orders/${id}/estado`, {
-        estado: ESTADOS_ORDEN.COMPLETADA
+        estado: ESTADOS_ORDEN.COMPLETADA,
       }, {
-        headers: {
-          Authorization: `Bearer ${usuario.token}`
-        }
+        headers: { Authorization: `Bearer ${usuario.token}` },
       });
       cargarOrdenesPendientes();
     } catch (error) {
@@ -179,37 +131,101 @@ const Dashboard = () => {
     }
   };
 
+  const generarCorteCaja = async () => {
+    const efectivoTotal = ventasCajero
+      .filter((v) => v.metodoPago === "efectivo")
+      .reduce((acc, v) => acc + v.total, 0);
+
+    const fecha = new Date();
+    const fechaStr = fecha.toLocaleString();
+    const fechaArchivo = fecha.toISOString().replace(/[:.]/g, "-");
+
+    let ticket = `CORTE DE CAJA - ${fechaStr}\n`;
+    ticket += `========================================\n`;
+    ticket += `Total en caja (efectivo): $${efectivoTotal.toFixed(2)}\n`;
+    ticket += `Número de ventas: ${ventasCajero.length}\n`;
+
+    const resumen = {};
+    ventasCajero.forEach((v) => {
+      resumen[v.metodoPago] = (resumen[v.metodoPago] || 0) + v.total;
+    });
+
+    ticket += `Ventas por método de pago:\n`;
+    for (const metodo in resumen) {
+      ticket += `  - ${metodo}: $${resumen[metodo].toFixed(2)}\n`;
+    }
+    ticket += `========================================\n`;
+
+    const blob = new Blob([ticket], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `corte-caja-${fechaArchivo}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    try {
+      await axiosInstance.put("/api/orders/corte-caja", {}, {
+        headers: { Authorization: `Bearer ${usuario.token}` },
+      });
+      await cargarVentasDelCajero();
+      await cargarOrdenesPendientes();
+      alert("Corte de caja realizado correctamente.");
+    } catch (error) {
+      console.error("Error al realizar corte de caja:", error);
+      alert("Error al realizar el corte de caja.");
+    }
+  };
+
   if (!usuario) return <p style={{ textAlign: "center", marginTop: "50px" }}>Cargando Dashboard...</p>;
   if (usuario.rol !== "cajero") return <p style={{ textAlign: "center", marginTop: "50px" }}>Acceso denegado</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Bienvenido al panel del cajero</h2>
+    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
+        <h2>Bienvenido al panel del cajero</h2>
+        <button onClick={cerrarSesion} style={{ padding: "5px 10px", backgroundColor: "#c00", color: "#fff", border: "none", borderRadius: "5px" }}>Cerrar sesión</button>
+      </div>
 
       <h3>Órdenes pendientes para recoger</h3>
-      <ul>
-        {ordenes.map((orden) => (
-          <li key={orden._id}>
-            <strong>Total:</strong> ${orden.total.toFixed(2)} - <button onClick={() => marcarComoFinalizado(orden._id)}>Marcar como entregada</button>
-          </li>
-        ))}
-      </ul>
+      <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "20px" }}>
+        <thead>
+          <tr>
+            <th style={{ border: "1px solid #ccc", padding: "8px" }}>Total</th>
+            <th style={{ border: "1px solid #ccc", padding: "8px" }}>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ordenes.map((orden) => (
+            <tr key={orden._id}>
+              <td style={{ border: "1px solid #ccc", padding: "8px" }}>${orden.total.toFixed(2)}</td>
+              <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+                <button onClick={() => marcarComoFinalizado(orden._id)} style={{ backgroundColor: "#28a745", color: "#fff", padding: "5px 10px", border: "none", borderRadius: "4px" }}>Marcar como entregada</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <h3>Registro de venta</h3>
-      <select onChange={(e) => handleSelectProduct(e.target.value)} defaultValue="">
-        <option value="" disabled>Seleccionar producto</option>
-        {productosDisponibles.map(p => (
-          <option key={p._id} value={p._id}>{p.nombre} - ${p.precio}</option>
-        ))}
-      </select>
-      <input
-        type="number"
-        placeholder="Cantidad"
-        value={producto.cantidad}
-        onChange={(e) => setProducto({ ...producto, cantidad: e.target.value })}
-        style={{ margin: "0 5px" }}
-      />
-      <button onClick={agregarProducto}>Agregar</button>
+      <div style={{ marginBottom: "10px" }}>
+        <select onChange={(e) => handleSelectProduct(e.target.value)} defaultValue="">
+          <option value="" disabled>Seleccionar producto</option>
+          {productosDisponibles.map(p => (
+            <option key={p._id} value={p._id}>{p.nombre} - ${p.precio}</option>
+          ))}
+        </select>
+        <input
+          type="number"
+          placeholder="Cantidad"
+          value={producto.cantidad}
+          onChange={(e) => setProducto({ ...producto, cantidad: e.target.value })}
+          style={{ margin: "0 5px", width: "60px" }}
+        />
+        <button onClick={agregarProducto}>Agregar</button>
+      </div>
 
       <ul>
         {carrito.map((item, index) => (
@@ -222,7 +238,7 @@ const Dashboard = () => {
       <h4>Total: ${total.toFixed(2)}</h4>
 
       <div>
-        <label>Método de pago:</label>
+        <label>Método de pago: </label>
         <select value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)}>
           <option value="efectivo">Efectivo</option>
           <option value="tarjeta">Tarjeta</option>
@@ -232,7 +248,7 @@ const Dashboard = () => {
 
       {metodoPago === "efectivo" && (
         <div>
-          <label>Efectivo recibido:</label>
+          <label>Efectivo recibido: </label>
           <input
             type="number"
             value={efectivoRecibido}
@@ -242,7 +258,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      <button onClick={finalizarVenta}>Finalizar venta</button>
+      <button onClick={finalizarVenta} style={{ backgroundColor: "#007bff", color: "#fff", padding: "10px", marginTop: "10px", border: "none", borderRadius: "5px" }}>Finalizar venta</button>
 
       <hr />
       <h3>Ventas registradas (sin corte de caja)</h3>
@@ -254,7 +270,7 @@ const Dashboard = () => {
         ))}
       </ul>
 
-      <button onClick={generarCorteCaja}>Generar corte de caja</button>
+      <button onClick={generarCorteCaja} style={{ backgroundColor: "#ffc107", color: "#000", padding: "10px", marginTop: "10px", border: "none", borderRadius: "5px" }}>Generar corte de caja</button>
     </div>
   );
 };
