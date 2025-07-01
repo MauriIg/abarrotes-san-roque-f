@@ -116,13 +116,8 @@ const Dashboard = () => {
 
   const handleSelectProduct = (id) => {
     const productoSeleccionado = productosDisponibles.find(p => p._id === id);
-    const precio = parseFloat(productoSeleccionado?.precio);
     if (productoSeleccionado) {
-      setProducto({
-        nombre: productoSeleccionado.nombre,
-        precio: isNaN(precio) ? 0 : precio,
-        cantidad: 1
-      });
+      setProducto({ nombre: productoSeleccionado.nombre, precio: productoSeleccionado.precio, cantidad: 1 });
     }
   };
 
@@ -185,13 +180,11 @@ const Dashboard = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h2>Bienvenido al panel del cajero</h2>
-
       <h3>Órdenes pendientes para recoger</h3>
       <ul>
         {ordenes.map((orden) => (
           <li key={orden._id}>
-            <strong>Total:</strong> ${orden.total.toFixed(2)}{" "}
-            <button onClick={() => marcarComoFinalizado(orden._id)}>Marcar como entregada</button>
+            <strong>Total:</strong> ${orden.total.toFixed(2)} - <button onClick={() => marcarComoFinalizado(orden._id)}>Marcar como entregada</button>
           </li>
         ))}
       </ul>
@@ -199,20 +192,15 @@ const Dashboard = () => {
       <h3>Registro de venta</h3>
       <select onChange={(e) => handleSelectProduct(e.target.value)} defaultValue="">
         <option value="" disabled>Seleccionar producto</option>
-        {productosDisponibles.map(p => {
-          const precio = parseFloat(p.precio);
-          return (
-            <option key={p._id} value={p._id}>
-              {p.nombre} - ${!isNaN(precio) ? precio.toFixed(2) : "0.00"}
-            </option>
-          );
-        })}
+        {productosDisponibles.map(p => (
+          <option key={p._id} value={p._id}>{p.nombre} - ${p.precio || "0"}</option>
+        ))}
       </select>
       <input
         type="number"
         placeholder="Cantidad"
         value={producto.cantidad}
-        onChange={(e) => setProducto({ ...producto, cantidad: parseInt(e.target.value) || 1 })}
+        onChange={(e) => setProducto({ ...producto, cantidad: e.target.value })}
         style={{ margin: "0 5px" }}
       />
       <button onClick={agregarProducto}>Agregar</button>
@@ -220,8 +208,7 @@ const Dashboard = () => {
       <ul>
         {carrito.map((item, index) => (
           <li key={index}>
-            {item.nombre} x{item.cantidad} - ${item.precio.toFixed(2)}{" "}
-            <button onClick={() => eliminarProducto(index)}>Eliminar</button>
+            {item.nombre} x{item.cantidad} - ${item.precio} <button onClick={() => eliminarProducto(index)}>Eliminar</button>
           </li>
         ))}
       </ul>
