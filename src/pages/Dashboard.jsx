@@ -181,7 +181,75 @@ const Dashboard = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h2>Bienvenido al panel del cajero</h2>
-      {/* Aquí va el resto de tu interfaz */}
+      <h3>Órdenes pendientes para recoger</h3>
+      <ul>
+        {ordenes.map((orden) => (
+          <li key={orden._id}>
+            <strong>Total:</strong> ${orden.total.toFixed(2)} - <button onClick={() => marcarComoFinalizado(orden._id)}>Marcar como entregada</button>
+          </li>
+        ))}
+      </ul>
+
+      <h3>Registro de venta</h3>
+      <select onChange={(e) => handleSelectProduct(e.target.value)} defaultValue="">
+        <option value="" disabled>Seleccionar producto</option>
+        {productosDisponibles.map(p => (
+          <option key={p._id} value={p._id}>{p.nombre} - ${p.precio}</option>
+        ))}
+      </select>
+      <input
+        type="number"
+        placeholder="Cantidad"
+        value={producto.cantidad}
+        onChange={(e) => setProducto({ ...producto, cantidad: e.target.value })}
+        style={{ margin: "0 5px" }}
+      />
+      <button onClick={agregarProducto}>Agregar</button>
+
+      <ul>
+        {carrito.map((item, index) => (
+          <li key={index}>
+            {item.nombre} x{item.cantidad} - ${item.precio} <button onClick={() => eliminarProducto(index)}>Eliminar</button>
+          </li>
+        ))}
+      </ul>
+
+      <h4>Total: ${total.toFixed(2)}</h4>
+
+      <div>
+        <label>Método de pago:</label>
+        <select value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)}>
+          <option value="efectivo">Efectivo</option>
+          <option value="tarjeta">Tarjeta</option>
+          <option value="transferencia">Transferencia</option>
+        </select>
+      </div>
+
+      {metodoPago === "efectivo" && (
+        <div>
+          <label>Efectivo recibido:</label>
+          <input
+            type="number"
+            value={efectivoRecibido}
+            onChange={(e) => setEfectivoRecibido(e.target.value)}
+          />
+          <p>Cambio: ${cambio.toFixed(2)}</p>
+        </div>
+      )}
+
+      <button onClick={finalizarVenta}>Finalizar venta</button>
+
+      <hr />
+      <h3>Ventas registradas (sin corte de caja)</h3>
+      <ul>
+        {ventasCajero.map((venta) => (
+          <li key={venta._id}>
+            {venta.metodoPago} - ${venta.total.toFixed(2)}
+          </li>
+        ))}
+      </ul>
+
+      <button onClick={generarCorteCaja}>Generar corte de caja</button>
     </div>
   );
 };
