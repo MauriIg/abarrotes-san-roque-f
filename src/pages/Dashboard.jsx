@@ -40,9 +40,7 @@ const Dashboard = () => {
   const cargarVentasDelCajero = async () => {
     try {
       const res = await axiosInstance.get("/api/orders/ventas/cajero", {
-        headers: {
-          Authorization: `Bearer ${usuario.token}`,
-        },
+        headers: { Authorization: `Bearer ${usuario.token}` },
       });
       const ventasFiltradas = res.data.filter((venta) => !venta.corteCaja);
       setVentasCajero(ventasFiltradas);
@@ -51,62 +49,17 @@ const Dashboard = () => {
     }
   };
 
-  const generarCorteCaja = async () => {
-    const efectivoTotal = ventasCajero
-      .filter((v) => v.metodoPago === "efectivo")
-      .reduce((acc, v) => acc + v.total, 0);
-
-    const fecha = new Date();
-    const fechaStr = fecha.toLocaleString();
-    const fechaArchivo = fecha.toISOString().replace(/[:.]/g, "-");
-
-    let ticket = `CORTE DE CAJA - ${fechaStr}\n`;
-    ticket += `========================================\n`;
-    ticket += `Total en caja (efectivo): $${efectivoTotal.toFixed(2)}\n`;
-    ticket += `Número de ventas: ${ventasCajero.length}\n`;
-
-    const resumen = {};
-    ventasCajero.forEach((v) => {
-      resumen[v.metodoPago] = (resumen[v.metodoPago] || 0) + v.total;
-    });
-
-    ticket += `Ventas por método de pago:\n`;
-    for (const metodo in resumen) {
-      ticket += `  - ${metodo}: $${resumen[metodo].toFixed(2)}\n`;
-    }
-    ticket += `========================================\n`;
-
-    const blob = new Blob([ticket], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `corte-caja-${fechaArchivo}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    try {
-      await axiosInstance.put("/api/orders/corte-caja", {}, {
-        headers: { Authorization: `Bearer ${usuario.token}` },
-      });
-      await cargarVentasDelCajero();
-      await cargarOrdenesPendientes();
-      alert("Corte de caja realizado correctamente.");
-    } catch (error) {
-      console.error("Error al realizar corte de caja:", error);
-      alert("Error al realizar el corte de caja.");
-    }
+  const cerrarSesion = () => {
+    dispatch(logout());
+    navigate("/login");
   };
 
   const marcarComoFinalizado = async (id) => {
     try {
       await axiosInstance.put(`/api/orders/${id}/estado`, {
-        estado: ESTADOS_ORDEN.COMPLETADA
+        estado: ESTADOS_ORDEN.COMPLETADA,
       }, {
-        headers: {
-          Authorization: `Bearer ${usuario.token}`
-        }
+        headers: { Authorization: `Bearer ${usuario.token}` },
       });
       cargarOrdenesPendientes();
     } catch (error) {
@@ -174,42 +127,63 @@ const Dashboard = () => {
     }
   };
 
-  // 🔐 Validación principal al renderizar (evita bucle)
   if (!usuario) return <p style={{ textAlign: "center", marginTop: "50px" }}>Cargando Dashboard...</p>;
   if (usuario.rol !== "cajero") return <p style={{ textAlign: "center", marginTop: "50px" }}>Acceso denegado</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Bienvenido al panel del cajero</h2>
+    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+        <h2>Bienvenido al panel del cajero</h2>
+        <button onClick={cerrarSesion} style={{ backgroundColor: "#e74c3c", color: "white", border: "none", padding: "8px 12px", cursor: "pointer" }}>Cerrar sesión</button>
+      </div>
+
       <h3>Órdenes pendientes para recoger</h3>
-      <ul>
-        {ordenes.map((orden) => (
-          <li key={orden._id}>
-            <strong>Total:</strong> ${orden.total.toFixed(2)} - <button onClick={() => marcarComoFinalizado(orden._id)}>Marcar como entregada</button>
-          </li>
-        ))}
-      </ul>
+      <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "20px" }}>
+        <thead>
+          <tr style={{ backgroundColor: "#f2f2f2" }}>
+            <th style={{ padding: "10px", border: "1px solid #ccc" }}>Total</th>
+            <th style={{ padding: "10px", border: "1px solid #ccc" }}>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ordenes.map((orden) => (
+            <tr key={orden._id}>
+              <td style={{ padding: "10px", border: "1px solid #ccc" }}>${orden.total.toFixed(2)}</td>
+              <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                <button
+                  onClick={() => marcarComoFinalizado(orden._id)}
+                  style={{ backgroundColor: "#27ae60", color: "white", padding: "6px 10px", border: "none", cursor: "pointer" }}
+                >
+                  Marcar como entregada
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <h3>Registro de venta</h3>
-      <select onChange={(e) => handleSelectProduct(e.target.value)} defaultValue="">
-        <option value="" disabled>Seleccionar producto</option>
-        {productosDisponibles.map(p => (
-          <option key={p._id} value={p._id}>{p.nombre} - ${p.precio}</option>
-        ))}
-      </select>
-      <input
-        type="number"
-        placeholder="Cantidad"
-        value={producto.cantidad}
-        onChange={(e) => setProducto({ ...producto, cantidad: e.target.value })}
-        style={{ margin: "0 5px" }}
-      />
-      <button onClick={agregarProducto}>Agregar</button>
+      <div>
+        <select onChange={(e) => handleSelectProduct(e.target.value)} defaultValue="">
+          <option value="" disabled>Seleccionar producto</option>
+          {productosDisponibles.map(p => (
+            <option key={p._id} value={p._id}>{p.nombre} - ${p.precio}</option>
+          ))}
+        </select>
+        <input
+          type="number"
+          value={producto.cantidad}
+          onChange={(e) => setProducto({ ...producto, cantidad: e.target.value })}
+          style={{ margin: "0 5px" }}
+        />
+        <button onClick={agregarProducto} style={{ padding: "5px 10px", backgroundColor: "#2980b9", color: "white", border: "none", cursor: "pointer" }}>Agregar</button>
+      </div>
 
       <ul>
         {carrito.map((item, index) => (
           <li key={index}>
-            {item.nombre} x{item.cantidad} - ${item.precio} <button onClick={() => eliminarProducto(index)}>Eliminar</button>
+            {item.nombre} x{item.cantidad} - ${item.precio}
+            <button onClick={() => eliminarProducto(index)} style={{ marginLeft: "10px", backgroundColor: "#c0392b", color: "white", border: "none", padding: "3px 6px", cursor: "pointer" }}>Eliminar</button>
           </li>
         ))}
       </ul>
@@ -228,28 +202,22 @@ const Dashboard = () => {
       {metodoPago === "efectivo" && (
         <div>
           <label>Efectivo recibido:</label>
-          <input
-            type="number"
-            value={efectivoRecibido}
-            onChange={(e) => setEfectivoRecibido(e.target.value)}
-          />
+          <input type="number" value={efectivoRecibido} onChange={(e) => setEfectivoRecibido(e.target.value)} />
           <p>Cambio: ${cambio.toFixed(2)}</p>
         </div>
       )}
 
-      <button onClick={finalizarVenta}>Finalizar venta</button>
+      <button onClick={finalizarVenta} style={{ marginTop: "10px", backgroundColor: "#2ecc71", color: "white", border: "none", padding: "8px 12px", cursor: "pointer" }}>Finalizar venta</button>
 
       <hr />
       <h3>Ventas registradas (sin corte de caja)</h3>
       <ul>
         {ventasCajero.map((venta) => (
-          <li key={venta._id}>
-            {venta.metodoPago} - ${venta.total.toFixed(2)}
-          </li>
+          <li key={venta._id}>{venta.metodoPago} - ${venta.total.toFixed(2)}</li>
         ))}
       </ul>
 
-      <button onClick={generarCorteCaja}>Generar corte de caja</button>
+      <button onClick={generarCorteCaja} style={{ marginTop: "10px", backgroundColor: "#8e44ad", color: "white", border: "none", padding: "8px 12px", cursor: "pointer" }}>Generar corte de caja</button>
     </div>
   );
 };
