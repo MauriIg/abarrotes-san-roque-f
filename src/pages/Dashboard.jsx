@@ -174,6 +174,7 @@ const Dashboard = () => {
     }
   };
 
+  // 🔐 Validación principal al renderizar (evita bucle)
   if (!usuario) return <p style={{ textAlign: "center", marginTop: "50px" }}>Cargando Dashboard...</p>;
   if (usuario.rol !== "cajero") return <p style={{ textAlign: "center", marginTop: "50px" }}>Acceso denegado</p>;
 
@@ -193,7 +194,7 @@ const Dashboard = () => {
       <select onChange={(e) => handleSelectProduct(e.target.value)} defaultValue="">
         <option value="" disabled>Seleccionar producto</option>
         {productosDisponibles.map(p => (
-          <option key={p._id} value={p._id}>{p.nombre} - ${p.precio || "0"}</option>
+          <option key={p._id} value={p._id}>{p.nombre} - ${p.precio}</option>
         ))}
       </select>
       <input
@@ -249,23 +250,6 @@ const Dashboard = () => {
       </ul>
 
       <button onClick={generarCorteCaja}>Generar corte de caja</button>
-
-      <button
-        onClick={() => {
-          dispatch(logout());
-          navigate("/");
-        }}
-        style={{
-          backgroundColor: "red",
-          color: "white",
-          border: "none",
-          padding: "8px 12px",
-          borderRadius: "4px",
-          marginTop: "20px"
-        }}
-      >
-        Cerrar sesión
-      </button>
     </div>
   );
 };
