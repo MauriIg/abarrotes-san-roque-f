@@ -19,6 +19,7 @@ const Dashboard = () => {
   const [ordenes, setOrdenes] = useState([]);
   const [ventasCajero, setVentasCajero] = useState([]);
   const [cerrandoSesion, setCerrandoSesion] = useState(false);
+  
 
   useEffect(() => {
     if (!cerrandoSesion && (!usuario || usuario.rol !== "cajero")) {
@@ -185,7 +186,7 @@ const Dashboard = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>Bienvenido al panel del cajero</h2>
+      <h2>Bienvenido al panel del cajero culito</h2>
       <button
           onClick={() => {
             setCerrandoSesion(true);
