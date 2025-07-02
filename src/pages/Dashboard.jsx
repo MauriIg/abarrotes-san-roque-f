@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/slices/userSlice";
+import logo from "../assets/logo.jpeg";
 import { getVisibleProducts } from "../redux/slices/productSlice";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosInstance";
@@ -265,28 +266,49 @@ const Dashboard = () => {
   if (usuario.rol !== "cajero") return <p style={{ textAlign: "center", marginTop: 50 }}>Acceso denegado</p>;
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: "20px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "20px",
+                    gap: "20px",
+                    backgroundColor: "#f0f0f0",
+                    borderBottom: "1px solid #ccc",
+                    padding: "12px 20px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                    <img src={logo} alt="Logo" style={{ height: "80px" }} />
+                    <div>
+                      <strong>Usuario Proveedor:</strong> {usuario.nombre || usuario.email}
+                    </div>
+                  </div>
+          
+                  <button
+                    onClick={() => {
+                      setCerrandoSesion(true);
+                      dispatch(logout());
+                      navigate("/login");
+                    }}
+                    disabled={cerrandoSesion}
+                    style={{
+                      background: "#c0392b",
+                      color: "white",
+                      padding: "8px 12px",
+                      border: "none",
+                      borderRadius: "5px",
+                      fontWeight: "bold",
+                      opacity: cerrandoSesion ? 0.6 : 1,
+                      cursor: cerrandoSesion ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {cerrandoSesion ? "Cerrando sesión..." : "Cerrar sesión"}
+                  </button>
+                </div>
       <h2>Bienvenido al panel del cajero</h2>
-      <button
-        onClick={() => {
-          setCerrandoSesion(true);
-          dispatch(logout());
-          navigate("/login");
-        }}
-        disabled={cerrandoSesion}
-        style={{
-          background: "#c0392b",
-          color: "white",
-          padding: "8px 12px",
-          border: "none",
-          borderRadius: "5px",
-          fontWeight: "bold",
-          opacity: cerrandoSesion ? 0.6 : 1,
-          cursor: cerrandoSesion ? "not-allowed" : "pointer",
-        }}
-      >
-        {cerrandoSesion ? "Cerrando sesión..." : "Cerrar sesión"}
-      </button>
+      
 
       {/* Registro de venta */}
       <h3>Registro de venta</h3>
