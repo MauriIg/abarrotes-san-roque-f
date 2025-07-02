@@ -1,4 +1,3 @@
-
 // src/pages/Carrito.jsx
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
@@ -13,7 +12,6 @@ import { crearOrden } from "../services/orderService";
 import { obtenerCarritoUsuario } from "../services/carritoService";
 import axiosInstance from "../services/axiosInstance";
 import { ESTADOS_ORDEN } from "../constants/orderEstados";
-
 
 const Carrito = () => {
   const carrito = useSelector(state => state.carrito);
@@ -62,20 +60,29 @@ const Carrito = () => {
         producto: p._id,
         cantidad: p.cantidad,
         precio: p.precio || p.producto?.precio || 0
-      })); 
+      }));
 
-      const estadoInicial =
-      metodoPago === "efectivo"
-        ? ESTADOS_ORDEN.PENDIENTE_PAGO
-        : ESTADOS_ORDEN.PAGADO;
+    let estadoInicial;
 
-        if (tipoEntrega === "domicilio") {
-          if (!direccion || !telefono) {
-            return alert("Debes completar la dirección y el teléfono para la entrega a domicilio.");
-          }
-        }
-        
-    
+    if (tipoEntrega === "tienda") {
+      if (metodoPago === "tarjeta") {
+        estadoInicial = ESTADOS_ORDEN.PAGADO;
+      } else {
+        estadoInicial = ESTADOS_ORDEN.PENDIENTE_RECOGER;
+      }
+    } else if (tipoEntrega === "domicilio") {
+      if (metodoPago === "tarjeta") {
+        estadoInicial = ESTADOS_ORDEN.PAGADO;
+      } else {
+        estadoInicial = ESTADOS_ORDEN.PENDIENTE_PAGO;
+      }
+    }
+
+    if (tipoEntrega === "domicilio") {
+      if (!direccion || !telefono) {
+        return alert("Debes completar la dirección y el teléfono para la entrega a domicilio.");
+      }
+    }
 
     try {
       await crearOrden(
@@ -106,7 +113,7 @@ const Carrito = () => {
       alert("Debes iniciar sesión para pagar con tarjeta.");
       return navigate("/login");
     }
-  
+
     try {
       const res = await axiosInstance.post(
         "/api/payment/create-checkout-session",
@@ -129,15 +136,13 @@ const Carrito = () => {
           },
         }
       );
-  
+
       window.location.href = res.data.url;
     } catch (err) {
       console.error("Error al redirigir a Stripe:", err);
       alert("Hubo un error al iniciar el pago.");
     }
   };
-  
-  
 
   return (
     <div>
@@ -210,7 +215,7 @@ const Carrito = () => {
                 />
                 <input
                   type="text"
-                  placeholder="telefono de contacto"
+                  placeholder="Teléfono de contacto"
                   value={telefono}
                   onChange={(e) => setTelefono(e.target.value)}
                   required
@@ -224,7 +229,7 @@ const Carrito = () => {
             <select value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)}>
               <option value="efectivo">Efectivo</option>
               <option value="transferencia">Transferencia</option>
-              <option value="tarjeta">tarjeta</option>
+              <option value="tarjeta">Tarjeta</option>
             </select>
           </div>
 
@@ -232,13 +237,11 @@ const Carrito = () => {
           <button onClick={() => dispatch(vaciarCarrito())}>Vaciar carrito</button>
           <br /><br />
           {metodoPago !== "tarjeta" && (
-  <button onClick={handleFinalizarCompra}>Pagar al recibir el paquete 🛒</button>
-)}
-{metodoPago === "tarjeta" && (
-  <button onClick={handleStripeCheckout}>Pagar con tarjeta 💳</button>
-)}
-
-          
+            <button onClick={handleFinalizarCompra}>Pagar al recibir el paquete 🛒</button>
+          )}
+          {metodoPago === "tarjeta" && (
+            <button onClick={handleStripeCheckout}>Pagar con tarjeta 💳</button>
+          )}
         </>
       )}
     </div>
