@@ -186,7 +186,7 @@ const Dashboard = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>Bienvenido al panel del cajero culito</h2>
+      <h2>Bienvenido al panel del cajero</h2>
       <button
           onClick={() => {
             setCerrandoSesion(true);
