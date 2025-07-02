@@ -89,7 +89,7 @@ const Proveedor = () => {
               <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
                 <img src={logo} alt="Logo" style={{ height: "80px" }} />
                 <div>
-                  <strong>Usuario Cajero:</strong> {usuario.nombre || usuario.email}
+                  <strong>Usuario Proveedor:</strong> {usuario.nombre || usuario.email}
                 </div>
               </div>
       
