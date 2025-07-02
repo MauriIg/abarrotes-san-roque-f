@@ -33,13 +33,25 @@ const Dashboard = () => {
   useEffect(() => {
     if (!cerrandoSesion && (!usuario || usuario.rol !== "cajero")) {
       dispatch(getVisibleProducts());
-      cargarOrdenesPendientes();
       cargarVentasDelCajero();
       alert("Acceso denegado");
       navigate("/");
       return;
     }
-  }, [usuario, dispatch]);
+  }, [usuario, dispatch, cerrandoSesion]);
+  
+  useEffect(() => {
+    if (!cerrandoSesion && usuario && usuario.rol === "cajero") {
+      cargarOrdenesPendientes();
+  
+      const interval = setInterval(() => {
+        cargarOrdenesPendientes();
+      }, 1000);
+  
+      return () => clearInterval(interval);
+    }
+  }, [usuario, cerrandoSesion]);
+  
 
   const cargarOrdenesPendientes = async () => {
     try {
