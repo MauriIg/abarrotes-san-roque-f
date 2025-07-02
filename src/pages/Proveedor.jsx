@@ -14,7 +14,7 @@ const Proveedor = () => {
   const [cerrandoSesion, setCerrandoSesion] = useState(false);
 
   useEffect(() => {
-    if (!cerrandoSesion && (!usuario || usuario.rol !== "rapidito")) {
+    if (!cerrandoSesion && (!usuario || usuario.rol !== "proveedor")) {
       alert("Acceso denegado");
       navigate("/");
       return;
