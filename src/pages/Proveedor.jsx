@@ -12,6 +12,19 @@ const Proveedor = () => {
   const usuario = useSelector((state) => state.auth.user);
   const navigate = useNavigate();
   const [cerrandoSesion, setCerrandoSesion] = useState(false);
+  const [cargando, setCargando] = useState(false);
+
+  const obtenerPedidos = async () => {
+    try {
+      setCargando(true);
+      const response = await axiosInstance.get("/api/pedidos-proveedor/mis-pedidos");
+      setPedidos(response.data);
+    } catch (error) {
+      console.error("Error al obtener pedidos:", error);
+    } finally {
+      setCargando(false);
+    }
+  };
 
   useEffect(() => {
     if (!cerrandoSesion && (!usuario || usuario.rol !== "proveedor")) {
@@ -20,17 +33,8 @@ const Proveedor = () => {
       return;
     }
 
-    const obtenerPedidos = async () => {
-      try {
-        const response = await axiosInstance.get("/api/pedidos-proveedor/mis-pedidos");
-        setPedidos(response.data);
-      } catch (error) {
-        console.error("Error al obtener pedidos:", error);
-      }
-    };
-
     obtenerPedidos();
-  }, [usuario]); // ✅ Solo depende de usuario
+  }, [usuario]);
 
   const handleCambioPrecio = (pedidoId, productoId, valor) => {
     setEditando((prev) => ({
@@ -55,6 +59,7 @@ const Proveedor = () => {
       });
 
       alert("Precios enviados");
+      obtenerPedidos(); // 🔄 Recargar pedidos para actualizar estado
     } catch (error) {
       console.error("Error al enviar precios:", error);
     }
@@ -63,7 +68,9 @@ const Proveedor = () => {
   const confirmarPago = async (pedidoId) => {
     try {
       await axiosInstance.put(`/api/pedidos-proveedor/confirmar-pago/${pedidoId}`);
-      alert("Pago confirmado");
+      alert("Pago confirmado y stock actualizado");
+
+      obtenerPedidos(); // 🔄 Recargar pedidos para actualizar estado
     } catch (error) {
       console.error("Error al confirmar pago:", error);
     }
@@ -72,51 +79,53 @@ const Proveedor = () => {
   if (!usuario) return <p style={{ padding: "20px" }}>Cargando datos...</p>;
 
   return (
-  
-      <div style={{ padding: "20px" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "20px",
-                gap: "20px",
-                backgroundColor: "#f0f0f0",
-                borderBottom: "1px solid #ccc",
-                padding: "12px 20px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                <img src={logo} alt="Logo" style={{ height: "80px" }} />
-                <div>
-                  <strong>Usuario Proveedor:</strong> {usuario.nombre || usuario.email}
-                </div>
-              </div>
-      
-              <button
-                onClick={() => {
-                  setCerrandoSesion(true);
-                  dispatch(logout());
-                  navigate("/login");
-                }}
-                disabled={cerrandoSesion}
-                style={{
-                  background: "#c0392b",
-                  color: "white",
-                  padding: "8px 12px",
-                  border: "none",
-                  borderRadius: "5px",
-                  fontWeight: "bold",
-                  opacity: cerrandoSesion ? 0.6 : 1,
-                  cursor: cerrandoSesion ? "not-allowed" : "pointer",
-                }}
-              >
-                {cerrandoSesion ? "Cerrando sesión..." : "Cerrar sesión"}
-              </button>
-            </div>
+    <div style={{ padding: "20px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "20px",
+          gap: "20px",
+          backgroundColor: "#f0f0f0",
+          borderBottom: "1px solid #ccc",
+          padding: "12px 20px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+          <img src={logo} alt="Logo" style={{ height: "80px" }} />
+          <div>
+            <strong>Usuario Proveedor:</strong> {usuario.nombre || usuario.email}
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            setCerrandoSesion(true);
+            dispatch(logout());
+            navigate("/login");
+          }}
+          disabled={cerrandoSesion}
+          style={{
+            background: "#c0392b",
+            color: "white",
+            padding: "8px 12px",
+            border: "none",
+            borderRadius: "5px",
+            fontWeight: "bold",
+            opacity: cerrandoSesion ? 0.6 : 1,
+            cursor: cerrandoSesion ? "not-allowed" : "pointer",
+          }}
+        >
+          {cerrandoSesion ? "Cerrando sesión..." : "Cerrar sesión"}
+        </button>
+      </div>
+
       <h2>Pedidos de Reabastecimiento</h2>
 
-      {pedidos.length === 0 ? (
+      {cargando ? (
+        <p>Cargando pedidos...</p>
+      ) : pedidos.length === 0 ? (
         <p>No tienes pedidos asignados.</p>
       ) : (
         pedidos.map((pedido) => (
