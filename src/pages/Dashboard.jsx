@@ -20,7 +20,7 @@ const Dashboard = () => {
   const [ventasCajero, setVentasCajero] = useState([]);
   const [cerrandoSesion, setCerrandoSesion] = useState(false);
 
-  // Estado para modal simple de seguridad
+  // Estados para modal seguridad
   const [showSecurityPrompt, setShowSecurityPrompt] = useState(false);
   const [adminUsuario, setAdminUsuario] = useState("");
   const [adminClave, setAdminClave] = useState("");
@@ -28,19 +28,20 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!cerrandoSesion && (!usuario || usuario.rol !== "cajero")) {
-      dispatch(getVisibleProducts());
-      cargarOrdenesPendientes();
-      cargarVentasDelCajero();
       alert("Acceso denegado");
       navigate("/");
       return;
     }
-  }, [usuario, dispatch]);
+    dispatch(getVisibleProducts());
+    cargarOrdenesPendientes();
+    cargarVentasDelCajero();
+  }, [usuario, dispatch, navigate, cerrandoSesion]);
 
   const cargarOrdenesPendientes = async () => {
     try {
-      const res = await axiosInstance.get(`/api/orders?estado=${encodeURIComponent(ESTADOS_ORDEN.PARA_RECOGER)}`);
-      // Asumimos que la orden tiene propiedad usuario con nombre
+      const res = await axiosInstance.get(
+        `/api/orders?estado=${encodeURIComponent(ESTADOS_ORDEN.PARA_RECOGER)}`
+      );
       const ordenesFiltradas = res.data.filter((orden) => !orden.corteCaja);
       setOrdenes(ordenesFiltradas);
     } catch (error) {
@@ -62,29 +63,30 @@ const Dashboard = () => {
     }
   };
 
-  const generarCorteCaja = async () => {
+  const generarCorteCaja = () => {
     setShowSecurityPrompt(true);
   };
 
   const validarAdminYCorte = async () => {
     if (!adminUsuario || !adminClave) {
-      return alert("Por favor ingresa usuario y contraseña de administrador.");
+      alert("Por favor ingresa usuario y contraseña de administrador.");
+      return;
     }
     setValidandoCorte(true);
 
     try {
-      // Supongamos que validas con API
       const res = await axiosInstance.post("/api/admin/validate", {
         usuario: adminUsuario,
         clave: adminClave,
       });
+
       if (!res.data.valid) {
         alert("Credenciales incorrectas.");
         setValidandoCorte(false);
         return;
       }
 
-      // Si es válido, realizar corte
+      // Generar ticket corte caja
       const efectivoTotal = ventasCajero
         .filter((v) => v.metodoPago === "efectivo")
         .reduce((acc, v) => acc + v.total, 0);
@@ -188,7 +190,7 @@ const Dashboard = () => {
   const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
   const cambio = efectivoRecibido ? parseFloat(efectivoRecibido) - total : 0;
 
-  // Función para generar ticket de venta individual
+  // Generar ticket venta individual
   const generarTicketVenta = (venta) => {
     const fecha = new Date().toLocaleString();
 
@@ -197,7 +199,7 @@ const Dashboard = () => {
     ticket += `Productos:\n`;
 
     venta.productos.forEach((item) => {
-      ticket += ` - ${item.nombre} x${item.cantidad} - $${item.precio}\n`;
+      ticket += ` - ${item.nombre} x${item.cantidad} - $${item.precio.toFixed(2)}\n`;
     });
 
     ticket += `----------------------------------------\n`;
@@ -242,7 +244,6 @@ const Dashboard = () => {
       });
       alert("Venta registrada exitosamente");
 
-      // Generar ticket de venta
       generarTicketVenta({
         productos: carrito,
         total,
@@ -258,13 +259,14 @@ const Dashboard = () => {
     }
   };
 
-  // 🔐 Validación principal al renderizar (evita bucle)
-  if (!usuario) return <p style={{ textAlign: "center", marginTop: "50px" }}>Cargando Dashboard...</p>;
-  if (usuario.rol !== "cajero") return <p style={{ textAlign: "center", marginTop: "50px" }}>Acceso denegado</p>;
+  // Validaciones básicas antes de mostrar UI
+  if (!usuario) return <p style={{ textAlign: "center", marginTop: 50 }}>Cargando Dashboard...</p>;
+  if (usuario.rol !== "cajero") return <p style={{ textAlign: "center", marginTop: 50 }}>Acceso denegado</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: 20 }}>
       <h2>Bienvenido al panel del cajero</h2>
+
       <button
         onClick={() => {
           setCerrandoSesion(true);
@@ -277,10 +279,11 @@ const Dashboard = () => {
           color: "white",
           padding: "8px 12px",
           border: "none",
-          borderRadius: "5px",
+          borderRadius: 5,
           fontWeight: "bold",
           opacity: cerrandoSesion ? 0.6 : 1,
           cursor: cerrandoSesion ? "not-allowed" : "pointer",
+          marginBottom: 20,
         }}
       >
         {cerrandoSesion ? "Cerrando sesión..." : "Cerrar sesión"}
@@ -303,7 +306,7 @@ const Dashboard = () => {
         placeholder="Cantidad"
         value={producto.cantidad}
         onChange={(e) => setProducto({ ...producto, cantidad: e.target.value })}
-        style={{ margin: "0 5px", width: "80px" }}
+        style={{ margin: "0 5px", width: 80 }}
         min={1}
       />
       <button onClick={agregarProducto}>Agregar</button>
@@ -343,27 +346,27 @@ const Dashboard = () => {
 
       <button onClick={finalizarVenta}>Finalizar venta</button>
 
-      {/* Órdenes pendientes para recoger, después del registro de venta */}
-      <h3 style={{ marginTop: "40px" }}>Órdenes pendientes para recoger</h3>
+      {/* Órdenes pendientes para recoger */}
+      <h3 style={{ marginTop: 40 }}>Órdenes pendientes para recoger</h3>
       {ordenes.length === 0 ? (
         <p>No hay órdenes pendientes</p>
       ) : (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ backgroundColor: "#f2f2f2" }}>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>Cliente</th>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>Total</th>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>Acción</th>
+              <th style={{ border: "1px solid #ddd", padding: 8 }}>Cliente</th>
+              <th style={{ border: "1px solid #ddd", padding: 8 }}>Total</th>
+              <th style={{ border: "1px solid #ddd", padding: 8 }}>Acción</th>
             </tr>
           </thead>
           <tbody>
             {ordenes.map((orden) => (
               <tr key={orden._id}>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                <td style={{ border: "1px solid #ddd", padding: 8 }}>
                   {orden.usuario?.nombre || "Cliente desconocido"}
                 </td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>${orden.total.toFixed(2)}</td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                <td style={{ border: "1px solid #ddd", padding: 8 }}>${orden.total.toFixed(2)}</td>
+                <td style={{ border: "1px solid #ddd", padding: 8 }}>
                   <button onClick={() => marcarComoFinalizado(orden._id)}>Marcar como entregada</button>
                 </td>
               </tr>
@@ -372,7 +375,7 @@ const Dashboard = () => {
         </table>
       )}
 
-      {/* Ventas registradas */}
+      {/* Ventas registradas sin corte */}
       <hr />
       <h3>Ventas registradas (sin corte de caja)</h3>
       <ul>
@@ -387,7 +390,7 @@ const Dashboard = () => {
         {validandoCorte ? "Validando..." : "Generar corte de caja"}
       </button>
 
-      {/* Modal simple para pedir credenciales admin */}
+      {/* Modal para validar admin */}
       {showSecurityPrompt && (
         <div
           style={{
@@ -408,9 +411,9 @@ const Dashboard = () => {
             onClick={(e) => e.stopPropagation()}
             style={{
               backgroundColor: "white",
-              padding: "20px",
-              borderRadius: "8px",
-              minWidth: "300px",
+              padding: 20,
+              borderRadius: 8,
+              minWidth: 300,
               boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
             }}
           >
@@ -421,7 +424,7 @@ const Dashboard = () => {
               value={adminUsuario}
               onChange={(e) => setAdminUsuario(e.target.value)}
               disabled={validandoCorte}
-              style={{ width: "100%", marginBottom: "10px" }}
+              style={{ width: "100%", marginBottom: 10 }}
             />
             <label>Contraseña / Código:</label>
             <input
@@ -429,9 +432,9 @@ const Dashboard = () => {
               value={adminClave}
               onChange={(e) => setAdminClave(e.target.value)}
               disabled={validandoCorte}
-              style={{ width: "100%", marginBottom: "10px" }}
+              style={{ width: "100%", marginBottom: 10 }}
             />
-            <button onClick={validarAdminYCorte} disabled={validandoCorte} style={{ marginRight: "10px" }}>
+            <button onClick={validarAdminYCorte} disabled={validandoCorte} style={{ marginRight: 10 }}>
               Validar y generar corte
             </button>
             <button onClick={() => setShowSecurityPrompt(false)} disabled={validandoCorte}>
