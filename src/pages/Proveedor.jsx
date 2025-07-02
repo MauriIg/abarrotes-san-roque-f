@@ -59,20 +59,20 @@ const Proveedor = () => {
       });
 
       alert("Precios enviados");
-      obtenerPedidos(); // 🔄 Recargar pedidos para actualizar estado
+      obtenerPedidos();
     } catch (error) {
       console.error("Error al enviar precios:", error);
     }
   };
 
-  const confirmarPago = async (pedidoId) => {
+  const confirmarEntrega = async (pedidoId) => {
     try {
       await axiosInstance.put(`/api/pedidos-proveedor/confirmar-pago/${pedidoId}`);
-      alert("Pago confirmado y stock actualizado");
+      alert("Mercancía entregada y stock actualizado");
 
-      obtenerPedidos(); // 🔄 Recargar pedidos para actualizar estado
+      obtenerPedidos();
     } catch (error) {
-      console.error("Error al confirmar pago:", error);
+      console.error("Error al confirmar entrega:", error);
     }
   };
 
@@ -176,21 +176,19 @@ const Proveedor = () => {
               </button>
             )}
 
-            {pedido.metodoPago === "efectivo" &&
-              pedido.confirmadoPorProveedor &&
-              pedido.estadoPago !== "pagado" && (
-                <button
-                  onClick={() => confirmarPago(pedido._id)}
-                  style={{
-                    marginLeft: 10,
-                    backgroundColor: "#4CAF50",
-                    color: "white",
-                    padding: "6px 12px",
-                  }}
-                >
-                  Confirmar Pago en Efectivo
-                </button>
-              )}
+            {pedido.confirmadoPorProveedor && pedido.estadoPago !== "pagado" && (
+              <button
+                onClick={() => confirmarEntrega(pedido._id)}
+                style={{
+                  marginLeft: 10,
+                  backgroundColor: "#4CAF50",
+                  color: "white",
+                  padding: "6px 12px",
+                }}
+              >
+                Confirmar Mercancía Entregada
+              </button>
+            )}
           </div>
         ))
       )}
