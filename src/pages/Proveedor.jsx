@@ -13,6 +13,7 @@ const Proveedor = () => {
   const navigate = useNavigate();
   const [cerrandoSesion, setCerrandoSesion] = useState(false);
   const [cargando, setCargando] = useState(false);
+  const [confirmando, setConfirmando] = useState(null); // Para indicar cuál pedido se está confirmando
 
   const obtenerPedidos = async () => {
     try {
@@ -67,12 +68,15 @@ const Proveedor = () => {
 
   const confirmarEntrega = async (pedidoId) => {
     try {
+      setConfirmando(pedidoId); // 🔄 Mostrar estado cargando solo en este pedido
       await axiosInstance.put(`/api/pedidos-proveedor/confirmar-pago/${pedidoId}`);
       alert("Mercancía entregada y stock actualizado");
 
-      obtenerPedidos();
+      await obtenerPedidos(); // 🔄 Refrescar pedidos
     } catch (error) {
       console.error("Error al confirmar entrega:", error);
+    } finally {
+      setConfirmando(null);
     }
   };
 
@@ -139,7 +143,7 @@ const Proveedor = () => {
             }}
           >
             <p><strong>Método de Pago:</strong> {pedido.metodoPago}</p>
-            <p><strong>Estado:</strong> {pedido.estadoPago}</p>
+            <p><strong>Estado:</strong> {pedido.estadoPago === "pagado" ? "Completado" : pedido.estadoPago}</p>
 
             <table style={{ width: "100%", marginTop: 10 }}>
               <thead>
@@ -176,18 +180,35 @@ const Proveedor = () => {
               </button>
             )}
 
-            {pedido.confirmadoPorProveedor && pedido.estadoPago !== "pagado" && (
-              <button
-                onClick={() => confirmarEntrega(pedido._id)}
-                style={{
-                  marginLeft: 10,
-                  backgroundColor: "#4CAF50",
-                  color: "white",
-                  padding: "6px 12px",
-                }}
-              >
-                Confirmar Mercancía Entregada
-              </button>
+            {pedido.confirmadoPorProveedor && (
+              pedido.estadoPago === "pagado" ? (
+                <button
+                  disabled
+                  style={{
+                    marginLeft: 10,
+                    backgroundColor: "#95a5a6",
+                    color: "white",
+                    padding: "6px 12px",
+                    cursor: "not-allowed",
+                  }}
+                >
+                  Completado
+                </button>
+              ) : (
+                <button
+                  onClick={() => confirmarEntrega(pedido._id)}
+                  disabled={confirmando === pedido._id}
+                  style={{
+                    marginLeft: 10,
+                    backgroundColor: confirmando === pedido._id ? "#f39c12" : "#4CAF50",
+                    color: "white",
+                    padding: "6px 12px",
+                    cursor: confirmando === pedido._id ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {confirmando === pedido._id ? "Confirmando..." : "Confirmar Mercancía Entregada"}
+                </button>
+              )
             )}
           </div>
         ))
