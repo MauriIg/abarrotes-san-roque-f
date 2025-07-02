@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../services/axiosInstance";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../redux/slices/userSlice";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.jpeg";
 
 const Proveedor = () => {
+  const dispatch = useDispatch();
   const [pedidos, setPedidos] = useState([]);
   const [editando, setEditando] = useState({});
   const usuario = useSelector((state) => state.auth.user);
   const navigate = useNavigate();
+  const [cerrandoSesion, setCerrandoSesion] = useState(false);
 
   useEffect(() => {
-    if (!usuario) return; // ⛔ Esperar a que se cargue el usuario
-
-    if (usuario.rol !== "proveedor") {
+    if (!cerrandoSesion && (!usuario || usuario.rol !== "rapidito")) {
       alert("Acceso denegado");
       navigate("/");
       return;
@@ -70,7 +72,48 @@ const Proveedor = () => {
   if (!usuario) return <p style={{ padding: "20px" }}>Cargando datos...</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
+  
+      <div style={{ padding: "20px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "20px",
+                gap: "20px",
+                backgroundColor: "#f0f0f0",
+                borderBottom: "1px solid #ccc",
+                padding: "12px 20px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                <img src={logo} alt="Logo" style={{ height: "80px" }} />
+                <div>
+                  <strong>Usuario Rapidito:</strong> {usuario.nombre || usuario.email}
+                </div>
+              </div>
+      
+              <button
+                onClick={() => {
+                  setCerrandoSesion(true);
+                  dispatch(logout());
+                  navigate("/login");
+                }}
+                disabled={cerrandoSesion}
+                style={{
+                  background: "#c0392b",
+                  color: "white",
+                  padding: "8px 12px",
+                  border: "none",
+                  borderRadius: "5px",
+                  fontWeight: "bold",
+                  opacity: cerrandoSesion ? 0.6 : 1,
+                  cursor: cerrandoSesion ? "not-allowed" : "pointer",
+                }}
+              >
+                {cerrandoSesion ? "Cerrando sesión..." : "Cerrar sesión"}
+              </button>
+            </div>
       <h2>Pedidos de Reabastecimiento</h2>
 
       {pedidos.length === 0 ? (
