@@ -62,7 +62,7 @@ const Carrito = () => {
         producto: p._id,
         cantidad: p.cantidad,
         precio: p.precio || p.producto?.precio || 0
-      }));
+      })); 
 
       const estadoInicial =
       metodoPago === "efectivo"
@@ -87,6 +87,7 @@ const Carrito = () => {
           referencias: tipoEntrega === "domicilio" ? referencias : "",
           telefono: tipoEntrega === "domicilio" ? telefono : "",
           metodoPago,
+          estado: estadoInicial,
         },
         token
       );
